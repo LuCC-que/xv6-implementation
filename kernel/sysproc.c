@@ -6,15 +6,16 @@
 #include "memlayout.h"
 #include "spinlock.h"
 #include "proc.h"
+#include "sysinfo.h"
 
 uint64
 sys_exit(void)
 {
   int n;
-  if(argint(0, &n) < 0)
+  if (argint(0, &n) < 0)
     return -1;
   exit(n);
-  return 0;  // not reached
+  return 0; // not reached
 }
 
 uint64
@@ -33,7 +34,7 @@ uint64
 sys_wait(void)
 {
   uint64 p;
-  if(argaddr(0, &p) < 0)
+  if (argaddr(0, &p) < 0)
     return -1;
   return wait(p);
 }
@@ -44,10 +45,10 @@ sys_sbrk(void)
   int addr;
   int n;
 
-  if(argint(0, &n) < 0)
+  if (argint(0, &n) < 0)
     return -1;
   addr = myproc()->sz;
-  if(growproc(n) < 0)
+  if (growproc(n) < 0)
     return -1;
   return addr;
 }
@@ -58,12 +59,14 @@ sys_sleep(void)
   int n;
   uint ticks0;
 
-  if(argint(0, &n) < 0)
+  if (argint(0, &n) < 0)
     return -1;
   acquire(&tickslock);
   ticks0 = ticks;
-  while(ticks - ticks0 < n){
-    if(myproc()->killed){
+  while (ticks - ticks0 < n)
+  {
+    if (myproc()->killed)
+    {
       release(&tickslock);
       return -1;
     }
@@ -78,7 +81,7 @@ sys_kill(void)
 {
   int pid;
 
-  if(argint(0, &pid) < 0)
+  if (argint(0, &pid) < 0)
     return -1;
   return kill(pid);
 }
@@ -94,4 +97,43 @@ sys_uptime(void)
   xticks = ticks;
   release(&tickslock);
   return xticks;
+}
+
+// lab2 implementation
+uint64
+sys_trace(void)
+{
+  uint64 p;
+
+  if (argaddr(0, &p) < 0)
+  {
+    return -1;
+  }
+
+  // my proc return the current running process
+  // add one more attribute into it, to specifies
+  myproc()->trace_SYS_ID = p;
+  return 0;
+}
+
+uint64
+sys_sysinfo(void)
+{
+  uint64 sysinfop; // address of the sys info structure pointer
+  struct sysinfo si;
+
+  if (argaddr(0, &sysinfop) < 0)
+  {
+    return -1;
+  }
+
+  si.freemem = freememsize(); // collect the free memory size
+  si.nproc = nproc_active();  // collect the number of processes not in use
+  // copy out the sysinfo struct si from kernel space to user space
+  if (copyout(myproc()->pagetable, sysinfop, (char *)&si, sizeof(si)) < 0)
+  {
+    return -1;
+  }
+
+  return 0;
 }
