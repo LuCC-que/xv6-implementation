@@ -478,7 +478,8 @@ void _helper_vmprint(pagetable_t pagetable, int level)
   }
 }
 
-// print the page table
+// is this pagetable pass in as vm?
+//  print the page table
 void vmprint(pagetable_t pagetable)
 {
   printf("page table %p\n", pagetable);
