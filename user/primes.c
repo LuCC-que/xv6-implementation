@@ -2,54 +2,84 @@
 #include "kernel/stat.h"
 #include "user/user.h"
 
-void prime(int rd){
+#define MAX 35
 
-    int n;
-    read(rd, &n, 4);
-    printf("prime %d\n", n);
-    int created = 0;
-    int p[2];
-    int num;
-    while(read(rd, &num, 4) != 0){
-        if(created == 0){
-            pipe(p);
-            created = 1;
-            int pid = fork();
-            if(pid == 0){
-                close(p[1]);
-                prime(p[0]);
-                return;
-            }else{
-                close(p[0]);
-            }
-        }
-        if(num % n != 0){
-            write(p[1], &num, 4);
+void childsJobs(int fd[2], int check){
+    //child process read from pipe
+    if(check > MAX){
+        exit(0);
+    }
+
+    int buf;
+    // if the pipe is empty, exit
+    if(!read(fd[0], &buf, sizeof(int))){
+        exit(0);
+    }
+    printf("prime %d\n", buf);
+
+    //create antoher pipe
+    int fd2[2];
+    pipe(fd2);
+    int tmp;
+
+    // write everything to the pipe before the fork happens
+    while(read(fd[0], &tmp, sizeof(int))){
+        //printf("in parent process, tmp is %d\n", tmp);
+        if(tmp % check != 0){
+            // printf("the process %d write %d to pipe\n", getpid(), tmp);
+            write(fd2[1], &tmp, sizeof(int));
         }
     }
-    close(rd);
-    close(p[1]);
-    wait(0);
+
+    //create a child process
+    int pid = fork();
+    if(pid != 0){
+        //parent process
+        close(fd2[0]);
+        close(fd2[1]);
+        wait(0);
+    }else{
+        //child process
+        close(fd2[1]);
+        childsJobs(fd2, check + 1);
+        close(fd2[0]);
+
+        // printf("debug child2 in %d, the buf is %d\n", getpid(), buf);
+    }
+    
 }
 
 int main(void){
 
-    int p[2];
-    pipe(p);
+    //create a pipe
+    int fd[2];
+    pipe(fd);
 
-    int pid = fork();
-    if(pid != 0){
-        // first
-        close(p[0]);
-        for(int i = 2; i <= 35; i++){
-            write(p[1], &i, 4);
-        }
-        close(p[1]);
-        wait(0);
-    }else{
-        close(p[1]);
-        prime(p[0]);
-        close(p[0]);
+    //write to pipe before the fork happens
+    for(int i = 2; i <= MAX; i++){
+        write(fd[1], &i, sizeof(int));
     }
+
+    //create a child process
+    // printf("debug\n");
+    int pid = fork();
+    
+    if(pid != 0){
+        //parent process
+        close(fd[0]);
+        //write to pipe
+        
+        close(fd[1]);
+        wait(0);
+        // printf("debug parent in %d\n", getpid());
+    }else{
+        //child process
+        close(fd[1]);
+        childsJobs(fd, 2);
+        close(fd[0]);
+        // printf("debug child in %d\n", getpid());
+    }
+
     exit(0);
+
 }
