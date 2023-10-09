@@ -3,20 +3,6 @@
 #include "user/user.h"
 #include "kernel/fs.h"
 
-// int strcmpT(const char *p, const char *q){
-//     // printf("check before what is p %s\n", p);
-//     // printf("check before what is q %s\n", q);
-//     while(*p && *p == *q){
-//         p++, q++;
-//     }
-//     // printf("check after what is p %s\n", p);
-//     // printf("check after what is q %s\n", q);
-    
-//     // printf("check what is unchar p %d\n", (uchar)*p);
-//     // printf("check what is unchar q %d\n", (uchar)*q);
-//     return (uchar)*p - (uchar)*q;
-// }
-
 char* fmtname(char *path)
 {
     static char buf[DIRSIZ+1];
@@ -123,8 +109,7 @@ int main(int argc, char *argv[]){
         printf("usage: find <directory> <file name>\n");
         exit(0);
     }
-
-
+    
     search_for_file(argv[1], argv[2]);
 
     free(argv[1]);
