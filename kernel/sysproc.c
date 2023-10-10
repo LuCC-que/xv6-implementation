@@ -119,11 +119,7 @@ sys_trace(void)
   //set the mask in the process state
   int i = 0;
   while(i < 23 && mask > 0){
-    if(mask % 2 == 1){
-      p->trace_syscalls[i++] = '1';
-    }else{
-      p->trace_syscalls[i++] = '0';
-    }
+    p->trace_syscalls[i++] = mask % 2 + '0';
     mask >>= 1;
   }
   p->is_trace = '1';
