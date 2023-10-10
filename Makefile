@@ -177,6 +177,8 @@ mkfs/mkfs: mkfs/mkfs.c $K/fs.h $K/param.h
 .PRECIOUS: %.o
 
 UPROGS=\
+	$U/_sysinfotest\
+	$U/_sysinfo\
 	$U/_trace\
 	$U/_xargs\
 	$U/_find\

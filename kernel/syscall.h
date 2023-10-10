@@ -23,3 +23,6 @@
 
 //new system call 'trace'
 #define SYS_trace  22
+
+//new system call "sysinfo"
+#define SYS_sysinfo 23

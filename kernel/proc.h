@@ -106,7 +106,7 @@ struct proc {
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
 
-  //add trace mask here, 23 system calls
-  char trace_syscalls[23];
+  //add trace mask here, 24 system calls
+  char trace_syscalls[24];
   char is_trace;
 };

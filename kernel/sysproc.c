@@ -6,6 +6,7 @@
 #include "memlayout.h"
 #include "spinlock.h"
 #include "proc.h"
+#include "sysinfo.h"
 
 uint64
 sys_exit(void)
@@ -128,6 +129,30 @@ sys_trace(void)
   p->is_trace = '1';
 
   return 0;
+}
 
-  
+uint64
+sys_sysinfo(void){
+
+  //get the return address
+  uint64 addr;
+  if(argaddr(0, &addr) < 0){
+    printf("sys_sysinfo: argaddr failed\n");
+    return -1;
+  }
+
+  struct sysinfo info;
+
+  //get the free memory
+  info.freemem = sysinfo_free_mem();
+  //get the number of processes
+  info.nproc = sysinfo_nproc();
+
+  //copyout the struct
+  if(copyout(myproc()->pagetable, addr, (char *)&info, sizeof(info)) < 0){
+    printf("sys_sysinfo: copyout failed\n");
+    return -1;
+  }
+
+  return 0;
 }
