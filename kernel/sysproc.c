@@ -6,6 +6,7 @@
 #include "memlayout.h"
 #include "spinlock.h"
 #include "proc.h"
+#include "sysinfo.h"
 
 uint64
 sys_exit(void)
@@ -94,4 +95,60 @@ sys_uptime(void)
   xticks = ticks;
   release(&tickslock);
   return xticks;
+}
+
+uint64
+sys_trace(void)
+{
+  //fetch the arguments from trapframe
+  int mask;
+  if(argint(0, &mask) < 0){
+    printf("sys_trace: argint failed\n");
+    return -1;
+  }
+  
+  //check if the mask is valid
+  if(mask < 0 || mask > __INT_MAX__){
+    printf("sys_trace: invalid mask %d\n", mask);
+    return -1;
+  }
+
+  //get a pointer to the current process
+  struct proc *p = myproc();
+  
+  //set the mask in the process state
+  int i = 0;
+  while(i < 23 && mask > 0){
+    p->trace_syscalls[i++] = mask % 2 + '0';
+    mask >>= 1;
+  }
+  p->is_trace = '1';
+
+  return 0;
+}
+
+uint64
+sys_sysinfo(void){
+
+  //get the return address
+  uint64 addr;
+  if(argaddr(0, &addr) < 0){
+    printf("sys_sysinfo: argaddr failed\n");
+    return -1;
+  }
+
+  struct sysinfo info;
+
+  //get the free memory
+  info.freemem = sysinfo_free_mem();
+  //get the number of processes
+  info.nproc = sysinfo_nproc();
+
+  //copyout the struct
+  if(copyout(myproc()->pagetable, addr, (char *)&info, sizeof(info)) < 0){
+    printf("sys_sysinfo: copyout failed\n");
+    return -1;
+  }
+
+  return 0;
 }

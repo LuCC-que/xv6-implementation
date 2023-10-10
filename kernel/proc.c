@@ -289,6 +289,12 @@ fork(void)
   }
   np->sz = p->sz;
 
+  //copy the parent's trace_syscalls to the child's trace_syscalls
+  safestrcpy(np->trace_syscalls, p->trace_syscalls, sizeof(p->trace_syscalls));
+
+  //copy is_trace from parent to child
+  np->is_trace = p->is_trace;
+
   // copy saved user registers.
   *(np->trapframe) = *(p->trapframe);
 
@@ -653,4 +659,16 @@ procdump(void)
     printf("%d %s %s", p->pid, state, p->name);
     printf("\n");
   }
+}
+
+//collect number of processes in system
+uint64 sysinfo_nproc(){
+  struct proc *p;
+  uint64 num = 0;
+  for(p = proc; p < &proc[NPROC]; p++){
+    if(p->state != UNUSED){
+      num++;
+    }
+  }
+  return num;
 }
