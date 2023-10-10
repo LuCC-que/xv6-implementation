@@ -289,6 +289,12 @@ fork(void)
   }
   np->sz = p->sz;
 
+  //copy the parent's trace_syscalls to the child's trace_syscalls
+  safestrcpy(np->trace_syscalls, p->trace_syscalls, sizeof(p->trace_syscalls));
+
+  //copy is_trace from parent to child
+  np->is_trace = p->is_trace;
+
   // copy saved user registers.
   *(np->trapframe) = *(p->trapframe);
 

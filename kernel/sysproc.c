@@ -95,3 +95,39 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+uint64
+sys_trace(void)
+{
+  //fetch the arguments from trapframe
+  int mask;
+  if(argint(0, &mask) < 0){
+    printf("sys_trace: argint failed\n");
+    return -1;
+  }
+  
+  //check if the mask is valid
+  if(mask < 0 || mask > __INT_MAX__){
+    printf("sys_trace: invalid mask %d\n", mask);
+    return -1;
+  }
+
+  //get a pointer to the current process
+  struct proc *p = myproc();
+  
+  //set the mask in the process state
+  int i = 0;
+  while(i < 23 && mask > 0){
+    if(mask % 2 == 1){
+      p->trace_syscalls[i++] = '1';
+    }else{
+      p->trace_syscalls[i++] = '0';
+    }
+    mask >>= 1;
+  }
+  p->is_trace = '1';
+
+  return 0;
+
+  
+}
