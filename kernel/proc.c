@@ -196,6 +196,27 @@ proc_pagetable(struct proc *p)
     return 0;
   }
 
+  
+  //it only works when LAB_PGTBL is defined
+  #ifdef LAB_PGTBL
+  // printf("start mapping the usyscall to USYSCALL\n");
+  //make a usyscall struct
+  struct usyscall* usyscall = (struct usyscall *)kalloc(); //any other ways? kalloc is too big
+  usyscall->pid = p->pid;
+
+  // map the struct usyscall to USYSCALL and read only
+  if(mappages(pagetable, USYSCALL, PGSIZE,
+              (uint64)usyscall, PTE_R | PTE_U) < 0){
+
+    printf("proc_pagetable: map usyscall failed\n");
+    uvmunmap(pagetable, TRAMPOLINE, 1, 0);
+    uvmunmap(pagetable, TRAPFRAME, 1, 0);
+    uvmfree(pagetable, 0);
+    return 0;
+  }
+
+  #endif
+
   return pagetable;
 }
 
@@ -206,6 +227,7 @@ proc_freepagetable(pagetable_t pagetable, uint64 sz)
 {
   uvmunmap(pagetable, TRAMPOLINE, 1, 0);
   uvmunmap(pagetable, TRAPFRAME, 1, 0);
+  uvmunmap(pagetable, USYSCALL, 1, 0);
   uvmfree(pagetable, sz);
 }
 
