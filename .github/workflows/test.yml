@@ -1,0 +1,21 @@
+name: Go-test-All
+
+on: [push, pull_request]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+      
+    - name: Update System and Install Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install git build-essential gdb-multiarch qemu-system-misc gcc-riscv64-linux-gnu binutils-riscv64-linux-gnu 
+
+    - name: Test
+      run: make grade
+
+    
