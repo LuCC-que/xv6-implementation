@@ -81,6 +81,62 @@ int
 sys_pgaccess(void)
 {
   // lab pgtbl: your code here.
+
+  //fetch all three arguments from user stack
+  uint64 va, dst;
+  int pages;
+
+  //check the validity of pages first
+  if(argint(1, &pages) < 0){
+    printf("sys_pgaccess: argint(pages) failed\n");
+    return -1;
+  }
+  if(pages > 512 || pages < 0){
+    printf("sys_pgaccess: each page totally has 512 entries \n");
+    return -1;
+  }
+
+  if(argaddr(0, &va) < 0){
+    printf("sys_pgaccess: argaddr(va) failed\n");
+    return -1;
+  }
+
+  if(argaddr(2, &dst) < 0){
+    printf("sys_pgaccess: argaddr(dst) failed\n");
+    return -1;
+  }
+
+  //set a mask to record the access bit
+  printf("current va is %p\n", va);
+  uint64 bitmask = 0, mask = 1;
+  
+  pte_t *pte;
+  pagetable_t pagetable = myproc()->pagetable;
+  while(pages > 0){
+    pte = walk(pagetable, va, 1);
+    if(pte){
+      if(*pte & PTE_A){
+        bitmask |= mask;
+      }
+
+      //clear the access bit
+      *pte &= ~PTE_A;
+    }
+
+    mask <<= 1;
+
+    //why next va is +2^12 not 2^10
+    va += PGSIZE;
+    printf("next va is %p\n", va);
+    pages--;
+  }
+
+  //why every time is a whoe pagetable
+  if(copyout(pagetable, dst, (char*)&bitmask, sizeof(uint64)) < 0){
+    printf("sys_pgaccess: copyout failed\n");
+    return -1;
+  }
+
   return 0;
 }
 #endif
