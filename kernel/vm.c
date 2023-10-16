@@ -442,7 +442,7 @@ void _vmprint(pagetable_t pagetable, int level){
         printf(" ..");
       }
       printf("%d: pte %p pa %p\n", i, pte, child);
-      if(level < 2){  
+      if(level < 3){  
         _vmprint((pagetable_t) child, level + 1);
       }
     }
@@ -453,5 +453,5 @@ void _vmprint(pagetable_t pagetable, int level){
 
 void vmprint(pagetable_t pagetable_t){
   printf("page table %p\n", pagetable_t);
-  _vmprint(pagetable_t, 0);
+  _vmprint(pagetable_t, 1);
 }

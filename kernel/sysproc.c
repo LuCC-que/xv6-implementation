@@ -107,7 +107,7 @@ sys_pgaccess(void)
   }
 
   //set a mask to record the access bit
-  printf("current va is %p\n", va);
+  // printf("current va is %p\n", va);
   uint64 bitmask = 0, mask = 1;
   
   pte_t *pte;
@@ -127,7 +127,7 @@ sys_pgaccess(void)
 
     //why next va is +2^12 not 2^10
     va += PGSIZE;
-    printf("next va is %p\n", va);
+    // printf("next va is %p\n", va);
     pages--;
   }
 
